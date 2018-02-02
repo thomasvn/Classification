@@ -4,6 +4,12 @@ CLASSIFICATIONS = ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica']
 CLASSIFICATION_COUNT = {'Iris-setosa': 0, 'Iris-versicolor': 0, 'Iris-virginica': 0}
 
 # Initialization of training and testing lists
+# Format of training and testing dictionaries
+# {
+#   'Iris-setosa': ['_,_,_,Iris-setosa', ...]
+#   'Iris-versicolor': ['_,_,_,Iris-versicolor', ...]
+#   'Iris-verginica': ['_,_,_,Iris-verginica', ...]
+# }
 training = {
     'Iris-setosa': [],
     'Iris-versicolor': [],
@@ -15,7 +21,6 @@ testing = {
     'Iris-virginica': []
 }
 
-
 # Read from data file
 iris_file_object = open(IRIS_DATA_FILE, 'r')
 iris_data = iris_file_object.readlines()
@@ -25,7 +30,6 @@ for iris_instance in iris_data:
     for classification in CLASSIFICATIONS:
         if classification in iris_instance:
             CLASSIFICATION_COUNT[classification] += 1
-print CLASSIFICATION_COUNT
 
 # Separates data into training and testing
 for iris_instance in iris_data:
