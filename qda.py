@@ -1,4 +1,5 @@
 import iris
+import math
 import numpy
 
 
@@ -9,14 +10,24 @@ import numpy
 #     'Iris-versicolor': '7.0,3.2,4.7,1.4;6.4,3.2,4.5,1.5;...'
 # }
 cleaned_iris_data = {}
+cleaned_iris_test_data = {}
 
 # Format of mu_matrices dictionary
-# Note: All columns of these matrices represent features of the iris
+# Note: All rows of these matrices represent the average of the features of the iris
 # {
-#     'Iris-virginica': matrix([[6.6225, 2.96, 5.6075, 1.99]]),
-#     'Iris-setosa': matrix([[5.0375, 3.44, 1.4625, 0.2325]]),
-#     'Iris-versicolor': matrix([[6.01, 2.78, 4.3175, 1.35]])
-# }
+#     'Iris-virginica': matrix([[6.6225],
+#         [2.96  ],
+#         [5.6075],
+#         [1.99  ]]),
+#     'Iris-setosa': matrix([[5.0375],
+#         [3.44  ],
+#         [1.4625],
+#         [0.2325]]),
+#     'Iris-versicolor': matrix([[6.01  ],
+#         [2.78  ],
+#         [4.3175],
+#         [1.35  ]])
+#  }
 mu_matrices = {}
 
 # Format of sigma_matrices dictionary
@@ -38,6 +49,10 @@ mu_matrices = {}
 sigma_matrices = {}
 
 
+############################################################
+#                          Cleaning
+############################################################
+
 # Clean the data and prepare for calculation of parameters for each classification
 for classification in iris.CLASSIFICATIONS:
     for iris_instance in iris.training[classification]:
@@ -50,6 +65,20 @@ for classification in iris.CLASSIFICATIONS:
             cleaned_iris_data[classification] = (iris_data_string + ';')
     cleaned_iris_data[classification] = cleaned_iris_data[classification][:-1]  # Removes last semicolon in string
 
+    for iris_instance in iris.testing[classification]:
+        iris_data = iris_instance.split(',')
+        iris_data = iris_data[:-1]
+        iris_data_string = ','.join(iris_data)
+        if classification in cleaned_iris_test_data:
+            cleaned_iris_test_data[classification] += (iris_data_string + ';')
+        else:
+            cleaned_iris_test_data[classification] = (iris_data_string + ';')
+    cleaned_iris_test_data[classification] = cleaned_iris_test_data[classification][:-1]
+
+
+############################################################
+#                          Training
+############################################################
 
 # Calculate Mu (mean) of each classification
 for classification in iris.CLASSIFICATIONS:
@@ -70,6 +99,8 @@ for classification in iris.CLASSIFICATIONS:
     # Divide matrix by the number of instances used in training
     mu_matrices[classification] /= (iris.CLASSIFICATION_COUNT[classification] * 0.8)
 
+    # Convention is to have mu as a column vector
+    mu_matrices[classification] = mu_matrices[classification].transpose()
 
 # Calculate Sigma (covariance) of each classification
 for classification in iris.CLASSIFICATIONS:
@@ -78,13 +109,13 @@ for classification in iris.CLASSIFICATIONS:
     iris_data = cleaned_iris_data[classification]
     iris_instances = iris_data.split(';')
     for instance in iris_instances:
-        instance_matrix = numpy.matrix(instance)
+        instance_matrix = numpy.matrix(instance).transpose()  # Transpose to turn into column vector
         instance_matrix -= mu_matrices[classification]  # Subtract Mu
         instance_matrices.append(numpy.matrix(instance_matrix))
 
     # Multiply instance_matrices by their transposes then sum all together
     for instance in instance_matrices:
-        instance = (instance.transpose()) * instance
+        instance = instance * instance.transpose()  # Outer Product
         if classification in sigma_matrices:
             sigma_matrices[classification] += instance
         else:
@@ -94,4 +125,42 @@ for classification in iris.CLASSIFICATIONS:
     sigma_matrices[classification] /= (iris.CLASSIFICATION_COUNT[classification] * 0.8)
 
 
-print sigma_matrices
+############################################################
+#                          Testing
+############################################################
+
+error_rate = {}
+
+for testing_classification in iris.CLASSIFICATIONS:
+    iris_test_data = cleaned_iris_test_data[testing_classification]
+    iris_instances = iris_test_data.split(';')
+
+    # Plug the instances into each classification's probability density function
+    for instance in iris_instances:
+        probability_densities = {}
+        for classification in iris.CLASSIFICATIONS:
+            mu = mu_matrices[classification]
+            sigma = sigma_matrices[classification]
+
+            instance_matrix = numpy.matrix(instance).transpose()  # Transpose to turn into column vector
+            pdf = 1 / (math.sqrt(numpy.linalg.det(sigma)))
+            exponent = ((-0.5) * (instance_matrix - mu).transpose() * numpy.linalg.inv(sigma) * (instance_matrix - mu))
+            exponent = exponent.item(0)  # Turn scalar into normal real number
+            pdf = pdf * math.exp(exponent)
+
+            probability_densities[classification] = pdf
+
+        # Choose a classification based on highest probability
+        likely_classification = max(probability_densities, key=probability_densities.get)
+
+        # Update the error rate calculation
+        if testing_classification + '-total' in error_rate:
+            error_rate[testing_classification + '-total'] += 1
+        else:
+            error_rate[testing_classification + '-total'] = 1
+            error_rate[testing_classification + '-incorrect'] = 0
+
+        if likely_classification != testing_classification:
+            error_rate[testing_classification + '-incorrect'] += 1
+
+print error_rate
