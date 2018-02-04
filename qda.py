@@ -47,6 +47,9 @@ mu_matrices = {}
 #         [0.051     , 0.04425   , 0.071875  , 0.042     ]])
 # }
 sigma_matrices = {}
+preserved_sigma_matrices = {}  # Assign this value right after training
+
+all_probability_densities = []
 
 
 ############################################################
@@ -124,6 +127,8 @@ for classification in iris.CLASSIFICATIONS:
     # Divide matrix by the number of instances used in training
     sigma_matrices[classification] /= (iris.CLASSIFICATION_COUNT[classification] * 0.8)
 
+    preserved_sigma_matrices = sigma_matrices
+
 
 ############################################################
 #                          Testing
@@ -152,6 +157,9 @@ for testing_classification in iris.CLASSIFICATIONS:
 
         # Choose a classification based on highest probability
         likely_classification = max(probability_densities, key=probability_densities.get)
+
+        # Aggregate the probability densities for later analysis
+        all_probability_densities.append(probability_densities)
 
         # Update the error rate calculation
         if testing_classification + '-total' in error_rate:
@@ -200,6 +208,9 @@ for training_classification in iris.CLASSIFICATIONS:
 
         # Choose a classification based on highest probability
         likely_classification = max(probability_densities, key=probability_densities.get)
+
+        # Aggregate the probability densities for later analysis
+        all_probability_densities.append(probability_densities)
 
         # Update the error rate calculation
         if training_classification + '-total' in error_rate:

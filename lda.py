@@ -4,6 +4,10 @@ import math
 import numpy
 
 
+all_probability_densities = []
+preserved_sigma_matrix = None  # Assign this value right after training
+
+
 ############################################################
 #                          Training
 ############################################################
@@ -19,6 +23,7 @@ for classification in iris.CLASSIFICATIONS:
         sigma_matrix += qda.sigma_matrices[classification]
 
 sigma_matrix /= len(iris.CLASSIFICATIONS)
+preserved_sigma_matrix = sigma_matrix
 
 
 ############################################################
@@ -48,6 +53,9 @@ for testing_classification in iris.CLASSIFICATIONS:
 
         # Choose a classification based on highest probability
         likely_classification = max(probability_densities, key=probability_densities.get)
+
+        # Aggregate the probability densities for later analysis
+        all_probability_densities.append(probability_densities)
 
         # Update the error rate calculation
         if testing_classification + '-total' in error_rate:
@@ -96,6 +104,9 @@ for training_classification in iris.CLASSIFICATIONS:
 
         # Choose a classification based on highest probability
         likely_classification = max(probability_densities, key=probability_densities.get)
+
+        # Aggregate the probability densities for later analysis
+        all_probability_densities.append(probability_densities)
 
         # Update the error rate calculation
         if training_classification + '-total' in error_rate:
