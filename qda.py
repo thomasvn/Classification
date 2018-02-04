@@ -87,7 +87,7 @@ for classification in iris.CLASSIFICATIONS:
     iris_data = cleaned_iris_data[classification]
     iris_instances = iris_data.split(';')
     for instance in iris_instances:
-        instance_matrices.append(numpy.matrix(instance))
+        instance_matrices.append(numpy.matrix(instance)) # '1,2,3,4'
 
     # Add all matrices of same classification together
     for instance in instance_matrices:
@@ -163,4 +163,60 @@ for testing_classification in iris.CLASSIFICATIONS:
         if likely_classification != testing_classification:
             error_rate[testing_classification + '-incorrect'] += 1
 
-print error_rate
+# Calculate the Error Rate
+total = 0.0
+incorrect = 0.0
+for classification in iris.CLASSIFICATIONS:
+    total += error_rate[classification + '-total']
+    incorrect += error_rate[classification + '-incorrect']
+
+print 'QDA Testing Data Error Rate: ' + str(incorrect/total)
+
+
+############################################################
+#                  Testing the Training Set
+############################################################
+
+error_rate = {}
+
+for training_classification in iris.CLASSIFICATIONS:
+    iris_test_data = cleaned_iris_data[training_classification]
+    iris_instances = iris_test_data.split(';')
+
+    # Plug the instances into each classification's probability density function
+    for instance in iris_instances:
+        probability_densities = {}
+        for classification in iris.CLASSIFICATIONS:
+            mu = mu_matrices[classification]
+            sigma = sigma_matrices[classification]
+
+            instance_matrix = numpy.matrix(instance).transpose()  # Transpose to turn into column vector
+            pdf = 1 / (math.sqrt(numpy.linalg.det(sigma)))
+            exponent = ((-0.5) * (instance_matrix - mu).transpose() * numpy.linalg.inv(sigma) * (instance_matrix - mu))
+            exponent = exponent.item(0)  # Turn scalar into normal real number
+            pdf = pdf * math.exp(exponent)
+
+            probability_densities[classification] = pdf
+
+        # Choose a classification based on highest probability
+        likely_classification = max(probability_densities, key=probability_densities.get)
+
+        # Update the error rate calculation
+        if training_classification + '-total' in error_rate:
+            error_rate[training_classification + '-total'] += 1
+        else:
+            error_rate[training_classification + '-total'] = 1
+            error_rate[training_classification + '-incorrect'] = 0
+
+        if likely_classification != training_classification:
+            error_rate[training_classification + '-incorrect'] += 1
+
+# Calculate the Error Rate
+total = 0.0
+incorrect = 0.0
+for classification in iris.CLASSIFICATIONS:
+    total += error_rate[classification + '-total']
+    incorrect += error_rate[classification + '-incorrect']
+
+print 'QDA Training Data Error Rate: ' + str(incorrect/total)
+
