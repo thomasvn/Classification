@@ -31,8 +31,6 @@ lda_sigma_square_matrix = numpy.diag(numpy.diag(lda.preserved_sigma_matrix))
 for classification in iris.CLASSIFICATIONS:
     qda_sigma_square_matrices[classification] = numpy.diag(numpy.diag(qda.preserved_sigma_matrices[classification]))
 
-print qda_sigma_square_matrices
-
 
 ############################################################
 #                QDA Testing the Testing Set
