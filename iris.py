@@ -1,5 +1,5 @@
 # Initialization of metadata
-IRIS_DATA_FILE = 'data/iris.data'
+IRIS_DATA_FILE = 'data/iris4.data'
 CLASSIFICATIONS = ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica']
 CLASSIFICATION_COUNT = {'Iris-setosa': 0, 'Iris-versicolor': 0, 'Iris-virginica': 0}
 

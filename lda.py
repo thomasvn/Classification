@@ -117,6 +117,9 @@ for training_classification in iris.CLASSIFICATIONS:
 
         if likely_classification != training_classification:
             error_rate[training_classification + '-incorrect'] += 1
+            print training_classification
+            print probability_densities
+
 
 # Calculate the Error Rate
 total = 0.0
