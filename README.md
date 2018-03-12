@@ -27,7 +27,14 @@ All classification models are trying to determine the classification boundary be
 
 We first calculate the mean and the covariance of each class. When doing this, we treat each iris instance as a 4-dimensional vector to take into account for the four features we are using for classification.
 
-Then to determine the boundary, we want to make sure that the probability any new iris-instance is equivalent for all classes in consideration.
+Then, to classify this new iris instance we apply the Gaussian Naive Bayes instance to determine which class is best fit (probabilistically) for this new instance.
+
+Note: this means that to draw the classification boundary between classes, we simply need to identify the points at which any new iris-instance would be equally probably to belong to all three classes.
 
 #### LDA (Linear Discriminant Analysis)
+The LDA classifier is simply a special case of the QDA classifier. In the LDA classifier, the covariance matrices of all classes are equal.
+
+To achieve this, I simply calculated for the average covariance matrix among all classes and used that matrix when plugging new instances back into the multivariate gaussian probability density function.
+
+Note: in LDA, all classification boundaries are linear.
 
